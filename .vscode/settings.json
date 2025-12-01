@@ -1,0 +1,5 @@
+{
+    "markdown-pdf.displayHeaderFooter": true,
+    "markdown-pdf.headerTemplate": "<div style='display: none;'></div>",
+    "markdown-pdf.footerTemplate": "<div style='font-size: 10px; text-align: center; width: 100%;'> <span class='pageNumber'></span> / <span class='totalPages'></span> </div>"
+}

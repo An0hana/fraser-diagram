@@ -17,8 +17,9 @@ class InterpolationApp:
     # 初始化
     def __init__(self, root):
         self.root = root
+        self.root.withdraw() # 启动时先隐藏窗口，防止看到布局调整过程
         self.root.title("Fraser diagram") 
-        self.root.geometry("1300x850") 
+        self.root.geometry("1500x1000") 
         self.root.configure(bg=Theme.COLORS["bg_wood"]) 
 
         # 设置程序图标
@@ -65,7 +66,9 @@ class InterpolationApp:
         ttk.Label(input_frame, text="Y VALUES:").grid(row=1, column=0, sticky="w", pady=5)
         self.entry_y = ttk.Entry(input_frame)
         self.entry_y.grid(row=1, column=1, sticky="ew", padx=15, pady=5)
-        self.entry_y.insert(0, "1.0, 1.5, 2.2, 3.1, 4.6, 6.5")
+        # 默认使用 sin(x) 的值: 0, 1, 2, 3, 4, 5
+        # sin(0)=0, sin(1)=0.8415, sin(2)=0.9093, sin(3)=0.1411, sin(4)=-0.7568, sin(5)=-0.9589
+        self.entry_y.insert(0, "0.0000, 0.8415, 0.9093, 0.1411, -0.7568, -0.9589")
 
         ttk.Label(input_frame, text="TARGET X:").grid(row=2, column=0, sticky="w", pady=5)
         self.entry_target = ttk.Entry(input_frame)
@@ -75,7 +78,7 @@ class InterpolationApp:
         ttk.Label(input_frame, text="TRUE FUNC:").grid(row=3, column=0, sticky="w", pady=5)
         self.entry_func = ttk.Entry(input_frame)
         self.entry_func.grid(row=3, column=1, sticky="ew", padx=15, pady=5)
-        self.entry_func.insert(0, "x**2") # 默认
+        self.entry_func.insert(0, "np.sin(x)") # 默认显示真值函数
 
         self.btn_calc = ttk.Button(input_frame, text="CRAFT!", command=self.process_data, cursor="hand2")
         self.btn_calc.grid(row=0, column=2, rowspan=4, sticky="nsew", padx=(10, 0), pady=5)
@@ -84,9 +87,16 @@ class InterpolationApp:
         content_frame = ttk.Frame(main_container)
         content_frame.pack(fill="both", expand=True)
 
+        # --- 布局核心修改：使用 Grid + Uniform 强制固定比例 ---
+        # 您可以在这里调整 weight 的值来改变左右比例
+        # 目前设置为 72 : 28 (大约是 7:3)
+        content_frame.columnconfigure(0, weight=72, uniform="split") 
+        content_frame.columnconfigure(1, weight=28, uniform="split")
+        content_frame.rowconfigure(0, weight=1)
+
         # 地图区域
         plot_frame = ttk.LabelFrame(content_frame, text=" MAP ", padding=5)
-        plot_frame.pack(side="left", fill="both", expand=True, padx=(0, 15))
+        plot_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
         self.fig, self.ax = plt.subplots(figsize=(6, 6), dpi=100)
         self.fig.patch.set_facecolor(Theme.COLORS["paper"])
@@ -98,8 +108,8 @@ class InterpolationApp:
         self.plotter = FraserPlotter(self.ax, self.canvas)
 
         # 右侧面板
-        right_panel = ttk.Frame(content_frame, width=450)
-        right_panel.pack(side="right", fill="y")
+        right_panel = ttk.Frame(content_frame) # 移除 width=450，完全由 grid 比例控制
+        right_panel.grid(row=0, column=1, sticky="nsew")
 
         # 账本
         summary_frame = ttk.LabelFrame(right_panel, text=" LEDGER ", padding=5)
@@ -148,6 +158,20 @@ class InterpolationApp:
         text_out.tag_config("warn", foreground=Theme.COLORS["warn"])
         
         self.logger = LogHandler(text_out)
+
+        # 初始化时直接计算一次
+        self.process_data()
+        
+        # 强制刷新布局计算，确保窗口弹出时已经是最终形态
+        self.root.update_idletasks()
+        # 居中显示窗口（可选，如果需要的话）
+        # screen_width = self.root.winfo_screenwidth()
+        # screen_height = self.root.winfo_screenheight()
+        # x = (screen_width - 1300) // 2
+        # y = (screen_height - 850) // 2
+        # self.root.geometry(f"1300x850+{x}+{y}")
+        
+        self.root.deiconify() # 一切准备就绪后，显示窗口
 
     # 禁止调列宽
     def disable_resize(self, event):
