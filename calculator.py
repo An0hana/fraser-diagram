@@ -75,6 +75,69 @@ class InterpolationCalculator:
             
         return val
 
+    # 计算特定方法的插值值
+    def calculate_method_value(self, method, x):
+        if self.X is None: return 0
+        
+        k = self.base_k
+        n = self.n
+        # p 是相对于 base_k 的位置
+        p = (x - self.X[k]) / self.h
+        
+        val = 0
+        
+        if method == 'Newton F':
+            val = sum(self.binom(p, j) * self.get_diff(k, j) for j in range(n) if k <= n-1-j)
+            
+        elif method == 'Newton B':
+            val = sum(self.binom(p + j - 1, j) * self.get_diff(k - j, j) for j in range(n) if k - j >= 0)
+            
+        elif method == 'Gauss F':
+            for j in range(n):
+                row = k - (j // 2)
+                m = j // 2
+                coef = self.binom(p + m - 1, j) if (j > 0 and j % 2 == 0) else self.binom(p + m, j)
+                val += coef * self.get_diff(row, j)
+                
+        elif method == 'Gauss B':
+            for j in range(n):
+                row = k - ((j + 1) // 2)
+                m = j // 2
+                coef = self.binom(p + m, j)
+                val += coef * self.get_diff(row, j)
+                
+        elif method == 'Stirling':
+            # Stirling is average of Gauss F and Gauss B
+            val_gf = 0
+            for j in range(n):
+                row = k - (j // 2)
+                m = j // 2
+                coef = self.binom(p + m - 1, j) if (j > 0 and j % 2 == 0) else self.binom(p + m, j)
+                val_gf += coef * self.get_diff(row, j)
+            
+            val_gb = 0
+            for j in range(n):
+                row = k - ((j + 1) // 2)
+                m = j // 2
+                coef = self.binom(p + m, j)
+                val_gb += coef * self.get_diff(row, j)
+            
+            val = (val_gf + val_gb) / 2
+            
+        elif method == 'Bessel':
+            for m in range(n // 2 + 1):
+                j2 = 2 * m
+                if j2 < n:
+                    coef = 1 if m == 0 else self.binom(p + m - 1, j2)
+                    mean_diff = (self.get_diff(k-m, j2) + self.get_diff(k-m+1, j2))/2
+                    val += coef * mean_diff
+                j3 = 2 * m + 1
+                if j3 < n:
+                    coef = (1 if m == 0 else self.binom(p + m - 1, 2*m)) * (p-0.5)/(2*m+1)
+                    val += coef * self.get_diff(k-m, j3)
+                    
+        return val
+
     def calculate_all(self):
         p, k, n = self.p, self.base_k, self.n
         results = {}
