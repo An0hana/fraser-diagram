@@ -59,6 +59,22 @@ class InterpolationCalculator:
         if row < 0 or row >= self.n or row > self.n - 1 - order: return 0.0
         return self.diff_table[row][order]
 
+    # 计算任意点的插值多项式值 (使用牛顿前插公式从x0开始)
+    def get_interpolated_value(self, x):
+        if self.X is None or self.n == 0:
+            return 0
+        
+        # p = (x - x0) / h
+        p = (x - self.X[0]) / self.h
+        
+        val = 0
+        # P(x) = sum( binom(p, j) * diff_table[0][j] )
+        for j in range(self.n):
+            term = self.binom(p, j) * self.diff_table[0][j]
+            val += term
+            
+        return val
+
     def calculate_all(self):
         p, k, n = self.p, self.base_k, self.n
         results = {}
