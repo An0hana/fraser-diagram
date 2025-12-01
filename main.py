@@ -15,6 +15,13 @@ try:
 except:
     pass
 
+# 设置 AppUserModelID 以便在任务栏显示图标
+try:
+    myappid = 'anohana.fraser_diagram.app.1.0' 
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except:
+    pass
+
 plt.rcParams['font.family'] = 'monospace' 
 plt.rcParams['font.monospace'] = ['Courier New', 'Consolas'] 
 plt.rcParams['axes.unicode_minus'] = False

@@ -22,9 +22,10 @@ class InterpolationApp:
 
         # 设置程序图标
         try:
-            icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
-            if os.path.exists(icon_path):
-                self.root.iconbitmap(icon_path)
+            icon_png = os.path.join(os.path.dirname(__file__), "icon.png")
+            if os.path.exists(icon_png):
+                img = tk.PhotoImage(file=icon_png)
+                self.root.iconphoto(True, img)
         except Exception:
             pass
 
