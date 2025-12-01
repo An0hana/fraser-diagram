@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -22,7 +23,13 @@ class InterpolationApp:
 
         # 设置程序图标
         try:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            if getattr(sys, 'frozen', False):
+                # PyInstaller 模式
+                base_dir = sys._MEIPASS
+            else:
+                # 普通脚本运行
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
             icon_png = os.path.join(base_dir, "assets", "icon.png")
             if os.path.exists(icon_png):
                 img = tk.PhotoImage(file=icon_png)
@@ -68,7 +75,7 @@ class InterpolationApp:
         ttk.Label(input_frame, text="TRUE FUNC:").grid(row=3, column=0, sticky="w", pady=5)
         self.entry_func = ttk.Entry(input_frame)
         self.entry_func.grid(row=3, column=1, sticky="ew", padx=15, pady=5)
-        self.entry_func.insert(0, "x**3") # Default example
+        self.entry_func.insert(0, "x**2") # 默认
 
         self.btn_calc = ttk.Button(input_frame, text="CRAFT!", command=self.process_data, cursor="hand2")
         self.btn_calc.grid(row=0, column=2, rowspan=4, sticky="nsew", padx=(10, 0), pady=5)
@@ -199,8 +206,6 @@ class InterpolationApp:
             self.tree.insert("", "end", values=("AVERAGE", f"{avg_val:.6f}"), tags=('total_row',))
 
             # 日志报告
-            #self.logger.tag("📜EXPERIMENT REPORT", "title")
-            #self.logger.separator()
             self.logger.tag("[1] ITEM INSPECTION", "title")
             self.logger.plain(f"• Step Size (h): {self.calculator.h}")
             self.logger.plain(f"• Base Node (x0): {self.calculator.X[self.calculator.base_k]}")
