@@ -14,7 +14,7 @@ class CurvePlotter:
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.master)
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
         
-    def plot(self, calculator, true_func_str=None):
+    def plot(self, calculator, true_func_str=None, method_name=None):
         self.ax.clear()
         
         # 1. 获取数据范围
@@ -25,7 +25,14 @@ class CurvePlotter:
         x_range = np.linspace(x_min - padding, x_max + padding, 200)
         
         # 2. 计算插值多项式 P(x)
-        y_interp = [calculator.get_interpolated_value(x) for x in x_range]
+        if method_name:
+            y_interp = [calculator.calculate_method_value(method_name, x) for x in x_range]
+            label_text = f"{method_name} P(x)"
+            color = Theme.PATH_COLORS.get(method_name, "red")
+        else:
+            y_interp = [calculator.get_interpolated_value(x) for x in x_range]
+            label_text = "Global Poly P(x)"
+            color = "red"
         
         # 3. 绘制真实函数 (如果提供)
         if true_func_str:
@@ -39,7 +46,7 @@ class CurvePlotter:
                 print(f"Error plotting true function: {e}")
 
         # 4. 绘制插值曲线
-        self.ax.plot(x_range, y_interp, color="red", linestyle="--", linewidth=1.5, label="Poly P(x)")
+        self.ax.plot(x_range, y_interp, color=color, linestyle="--", linewidth=1.5, label=label_text)
         
         # 5. 绘制原始数据点
         self.ax.scatter(calculator.X, calculator.Y, color="blue", s=30, zorder=5, label="Data")

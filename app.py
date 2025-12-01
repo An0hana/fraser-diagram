@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -18,6 +19,14 @@ class InterpolationApp:
         self.root.title("Fraser diagram") 
         self.root.geometry("1300x850") 
         self.root.configure(bg=Theme.COLORS["bg_wood"]) 
+
+        # 设置程序图标
+        try:
+            icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+        except Exception:
+            pass
 
         Theme.apply_styles()
         
@@ -60,10 +69,7 @@ class InterpolationApp:
         self.entry_func.insert(0, "x**3") # Default example
 
         self.btn_calc = ttk.Button(input_frame, text="CRAFT!", command=self.process_data, cursor="hand2")
-        self.btn_calc.grid(row=0, column=2, rowspan=2, sticky="nsew", padx=(10, 0), pady=5)
-
-        self.btn_curve = ttk.Button(input_frame, text="CURVE", command=self.show_curve_comparison, cursor="hand2")
-        self.btn_curve.grid(row=2, column=2, rowspan=2, sticky="nsew", padx=(10, 0), pady=5)
+        self.btn_calc.grid(row=0, column=2, rowspan=4, sticky="nsew", padx=(10, 0), pady=5)
 
         # 内容区域
         content_frame = ttk.Frame(main_container)
@@ -149,8 +155,15 @@ class InterpolationApp:
         
         if method_name in Theme.PATH_COLORS:
             self.plotter.highlight_path(method_name, self.calculator)
+            
+            # Update curve with selected method
+            true_func = self.entry_func.get().strip()
+            self.curve_plotter.plot(self.calculator, true_func if true_func else None, method_name)
         else:
             self.plotter.clear_highlights()
+            # Reset curve to default
+            true_func = self.entry_func.get().strip()
+            self.curve_plotter.plot(self.calculator, true_func if true_func else None)
 
     # 处理数据
     def process_data(self):
@@ -169,6 +182,10 @@ class InterpolationApp:
             self.plotter.plot_diagram(self.calculator)
             results = self.calculator.calculate_all()
 
+            # Initial plot (default)
+            true_func = self.entry_func.get().strip()
+            self.curve_plotter.plot(self.calculator, true_func if true_func else None)
+
             # 显示结果
             values_list = []
             for m_name, val in results.items():
@@ -180,8 +197,8 @@ class InterpolationApp:
             self.tree.insert("", "end", values=("AVERAGE", f"{avg_val:.6f}"), tags=('total_row',))
 
             # 日志报告
-            self.logger.tag("📜EXPERIMENT REPORT", "title")
-            self.logger.separator()
+            #self.logger.tag("📜EXPERIMENT REPORT", "title")
+            #self.logger.separator()
             self.logger.tag("[1] ITEM INSPECTION", "title")
             self.logger.plain(f"• Step Size (h): {self.calculator.h}")
             self.logger.plain(f"• Base Node (x0): {self.calculator.X[self.calculator.base_k]}")
@@ -206,19 +223,4 @@ class InterpolationApp:
         except Exception as e:
             messagebox.showerror("Broken Tool", str(e))
 
-    def show_curve_comparison(self):
-        try:
-            # 确保数据已加载
-            if self.calculator.X is None:
-                self.calculator.load_data(
-                    self.entry_x.get(),
-                    self.entry_y.get(),
-                    self.entry_target.get()
-                )
-            
-            true_func = self.entry_func.get().strip()
-            self.curve_plotter.plot(self.calculator, true_func if true_func else None)
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to plot curve: {str(e)}")
 
