@@ -6,6 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from theme import Theme
 from plotter import FraserPlotter
+from curve_plotter import CurvePlotter
 from logger import LogHandler
 from calculator import InterpolationCalculator
 
@@ -53,8 +54,16 @@ class InterpolationApp:
         self.entry_target.grid(row=2, column=1, sticky="ew", padx=15, pady=5)
         self.entry_target.insert(0, "2.5")
 
+        ttk.Label(input_frame, text="TRUE FUNC:").grid(row=3, column=0, sticky="w", pady=5)
+        self.entry_func = ttk.Entry(input_frame)
+        self.entry_func.grid(row=3, column=1, sticky="ew", padx=15, pady=5)
+        self.entry_func.insert(0, "x**3") # Default example
+
         self.btn_calc = ttk.Button(input_frame, text="CRAFT!", command=self.process_data, cursor="hand2")
-        self.btn_calc.grid(row=0, column=2, rowspan=3, sticky="nsew", padx=(10, 0), pady=5)
+        self.btn_calc.grid(row=0, column=2, rowspan=2, sticky="nsew", padx=(10, 0), pady=5)
+
+        self.btn_curve = ttk.Button(input_frame, text="CURVE", command=self.show_curve_comparison, cursor="hand2")
+        self.btn_curve.grid(row=2, column=2, rowspan=2, sticky="nsew", padx=(10, 0), pady=5)
 
         # 内容区域
         content_frame = ttk.Frame(main_container)
@@ -92,11 +101,21 @@ class InterpolationApp:
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.tree.bind("<Button-1>", self.disable_resize)
 
-        # 日志
+        # 分析区域
+        analysis_frame = ttk.LabelFrame(right_panel, text=" ANALYSIS ", padding=5)
+        analysis_frame.pack(fill="both", expand=True, pady=(0, 15))
+
+        self.curve_frame = ttk.Frame(analysis_frame)
+        self.curve_frame.pack(fill="both", expand=True)
+        
+        self.curve_plotter = CurvePlotter(self.curve_frame)
+
+        # 日志区域
         log_frame = ttk.LabelFrame(right_panel, text=" LOG ", padding=5)
-        log_frame.pack(fill="both", expand=True)
+        log_frame.pack(fill="x", pady=(0, 0))
 
         text_out = tk.Text(log_frame, 
+                                height=12,
                                 font=(Theme.FONT_FAMILY, 10), 
                                 bg=Theme.COLORS["paper"], 
                                 fg=Theme.COLORS["text_dark"], 
@@ -186,3 +205,20 @@ class InterpolationApp:
 
         except Exception as e:
             messagebox.showerror("Broken Tool", str(e))
+
+    def show_curve_comparison(self):
+        try:
+            # 确保数据已加载
+            if self.calculator.X is None:
+                self.calculator.load_data(
+                    self.entry_x.get(),
+                    self.entry_y.get(),
+                    self.entry_target.get()
+                )
+            
+            true_func = self.entry_func.get().strip()
+            self.curve_plotter.plot(self.calculator, true_func if true_func else None)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to plot curve: {str(e)}")
+
