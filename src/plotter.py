@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-from theme import Theme
-from calculator import InterpolationCalculator
+from .theme import Theme
+from .calculator import InterpolationCalculator
 
 # 弗雷瑟图绘制器
 class FraserPlotter:

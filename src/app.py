@@ -5,11 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from theme import Theme
-from plotter import FraserPlotter
-from curve_plotter import CurvePlotter
-from logger import LogHandler
-from calculator import InterpolationCalculator
+from .theme import Theme
+from .plotter import FraserPlotter
+from .curve_plotter import CurvePlotter
+from .logger import LogHandler
+from .calculator import InterpolationCalculator
 
 # 主应用类
 class InterpolationApp:
@@ -22,7 +22,8 @@ class InterpolationApp:
 
         # 设置程序图标
         try:
-            icon_png = os.path.join(os.path.dirname(__file__), "icon.png")
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            icon_png = os.path.join(base_dir, "assets", "icon.png")
             if os.path.exists(icon_png):
                 img = tk.PhotoImage(file=icon_png)
                 self.root.iconphoto(True, img)

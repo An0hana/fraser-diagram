@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # 添加当前目录到路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app import InterpolationApp
+from src.app import InterpolationApp
 
 # 基础设置
 try:

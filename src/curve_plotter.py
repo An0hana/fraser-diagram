@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from theme import Theme
+from .theme import Theme
 
 class CurvePlotter:
     def __init__(self, master_window):
