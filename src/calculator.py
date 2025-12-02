@@ -19,7 +19,7 @@ class InterpolationCalculator:
         self.n = 0
 
     # 加载数据
-    def load_data(self, x_str, y_str, target_str):
+    def load_data(self, x_str, y_str, target_str, force_base_index=None):
         if not target_str: raise ValueError("Target X is empty")
         self.target_x = float(target_str)
 
@@ -34,7 +34,22 @@ class InterpolationCalculator:
         self.Y = y_arr
         self.h = diff[0]
         self.n = len(self.X)
-        self.base_k = int(np.abs(self.X - self.target_x).argmin())
+        
+        # 计算 base_k
+        if force_base_index is not None and str(force_base_index).strip() != "":
+            try:
+                idx = int(force_base_index)
+                if 0 <= idx < self.n:
+                    self.base_k = idx
+                else:
+                    raise ValueError(f"Base Index {idx} out of bounds (0-{self.n-1})")
+            except ValueError as e:
+                if "out of bounds" in str(e):
+                    raise e
+                raise ValueError(f"Invalid Base Index: {force_base_index}")
+        else:
+            self.base_k = int(np.abs(self.X - self.target_x).argmin())
+            
         self.p = (self.target_x - self.X[self.base_k]) / self.h
         
         self._build_diff_table()
@@ -59,7 +74,7 @@ class InterpolationCalculator:
         if row < 0 or row >= self.n or row > self.n - 1 - order: return 0.0
         return self.diff_table[row][order]
 
-    # 计算任意点的插值多项式值 (使用牛顿前插公式从x0开始)
+    # 计算任意点的插值多项式值
     def get_interpolated_value(self, x):
         if self.X is None or self.n == 0:
             return 0
@@ -107,7 +122,6 @@ class InterpolationCalculator:
                 val += coef * self.get_diff(row, j)
                 
         elif method == 'Stirling':
-            # Stirling is average of Gauss F and Gauss B
             val_gf = 0
             for j in range(n):
                 row = k - (j // 2)

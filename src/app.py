@@ -17,7 +17,7 @@ class InterpolationApp:
     # 初始化
     def __init__(self, root):
         self.root = root
-        self.root.withdraw() # 启动时先隐藏窗口，防止看到布局调整过程
+        self.root.withdraw()
         self.root.title("Fraser diagram") 
         self.root.geometry("1500x1000") 
         self.root.configure(bg=Theme.COLORS["bg_wood"]) 
@@ -80,16 +80,18 @@ class InterpolationApp:
         self.entry_func.grid(row=3, column=1, sticky="ew", padx=15, pady=5)
         self.entry_func.insert(0, "np.sin(x)") # 默认显示真值函数
 
+        ttk.Label(input_frame, text="FORCE BASE:").grid(row=4, column=0, sticky="w", pady=5)
+        self.entry_base = ttk.Entry(input_frame)
+        self.entry_base.grid(row=4, column=1, sticky="ew", padx=15, pady=5)
+
         self.btn_calc = ttk.Button(input_frame, text="CRAFT!", command=self.process_data, cursor="hand2")
-        self.btn_calc.grid(row=0, column=2, rowspan=4, sticky="nsew", padx=(10, 0), pady=5)
+        self.btn_calc.grid(row=0, column=2, rowspan=5, sticky="nsew", padx=(10, 0), pady=5)
 
         # 内容区域
         content_frame = ttk.Frame(main_container)
         content_frame.pack(fill="both", expand=True)
 
-        # --- 布局核心修改：使用 Grid + Uniform 强制固定比例 ---
-        # 您可以在这里调整 weight 的值来改变左右比例
-        # 目前设置为 72 : 28 (大约是 7:3)
+        # 强制固定比例
         content_frame.columnconfigure(0, weight=72, uniform="split") 
         content_frame.columnconfigure(1, weight=28, uniform="split")
         content_frame.rowconfigure(0, weight=1)
@@ -108,7 +110,7 @@ class InterpolationApp:
         self.plotter = FraserPlotter(self.ax, self.canvas)
 
         # 右侧面板
-        right_panel = ttk.Frame(content_frame) # 移除 width=450，完全由 grid 比例控制
+        right_panel = ttk.Frame(content_frame) 
         right_panel.grid(row=0, column=1, sticky="nsew")
 
         # 账本
@@ -158,21 +160,10 @@ class InterpolationApp:
         text_out.tag_config("warn", foreground=Theme.COLORS["warn"])
         
         self.logger = LogHandler(text_out)
-
-        # 初始化时直接计算一次
+        # 默认界面显示
         self.process_data()
-        
-        # 强制刷新布局计算，确保窗口弹出时已经是最终形态
         self.root.update_idletasks()
-        # 居中显示窗口（可选，如果需要的话）
-        # screen_width = self.root.winfo_screenwidth()
-        # screen_height = self.root.winfo_screenheight()
-        # x = (screen_width - 1300) // 2
-        # y = (screen_height - 850) // 2
-        # self.root.geometry(f"1300x850+{x}+{y}")
-        
-        self.root.deiconify() # 一切准备就绪后，显示窗口
-
+        self.root.deiconify() 
     # 禁止调列宽
     def disable_resize(self, event):
         if self.tree.identify_region(event.x, event.y) == "separator":
@@ -189,12 +180,12 @@ class InterpolationApp:
         if method_name in Theme.PATH_COLORS:
             self.plotter.highlight_path(method_name, self.calculator)
             
-            # Update curve with selected method
+            # 更新曲线图以显示所选方法
             true_func = self.entry_func.get().strip()
             self.curve_plotter.plot(self.calculator, true_func if true_func else None, method_name)
         else:
             self.plotter.clear_highlights()
-            # Reset curve to default
+            # 重置曲线为默认状态
             true_func = self.entry_func.get().strip()
             self.curve_plotter.plot(self.calculator, true_func if true_func else None)
 
@@ -209,13 +200,14 @@ class InterpolationApp:
             self.calculator.load_data(
                 self.entry_x.get(),
                 self.entry_y.get(),
-                self.entry_target.get()
+                self.entry_target.get(),
+                self.entry_base.get()
             )
             
             self.plotter.plot_diagram(self.calculator)
             results = self.calculator.calculate_all()
 
-            # Initial plot (default)
+            # 默认曲线图
             true_func = self.entry_func.get().strip()
             self.curve_plotter.plot(self.calculator, true_func if true_func else None)
 
@@ -232,7 +224,7 @@ class InterpolationApp:
             # 日志报告
             self.logger.tag("[1] ITEM INSPECTION", "title")
             self.logger.plain(f"• Step Size (h): {self.calculator.h}")
-            self.logger.plain(f"• Base Node (x0): {self.calculator.X[self.calculator.base_k]}")
+            self.logger.plain(f"• Base Node (x0): {self.calculator.X[self.calculator.base_k]} (Index: {self.calculator.base_k})")
             p = self.calculator.p
             p_desc = "Center" if abs(p) < 0.1 else ("Right" if p > 0 else "Left")
             self.logger.plain(f"• Position (p): {p:.3f} ({p_desc})")
