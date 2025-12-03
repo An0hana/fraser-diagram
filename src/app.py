@@ -92,8 +92,8 @@ class InterpolationApp:
         content_frame.pack(fill="both", expand=True)
 
         # 强制固定比例
-        content_frame.columnconfigure(0, weight=72, uniform="split") 
-        content_frame.columnconfigure(1, weight=28, uniform="split")
+        content_frame.columnconfigure(0, weight=65, uniform="split") 
+        content_frame.columnconfigure(1, weight=35, uniform="split")
         content_frame.rowconfigure(0, weight=1)
 
         # 地图区域
