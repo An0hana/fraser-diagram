@@ -3,19 +3,19 @@
     MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]}, messageStyle: "none" });
 </script>
 
-# 上机实验报告：基于弗雷瑟图的等距插值程序实现
+# 上机实验报告：基于弗雷瑟图表的等距插值程序实现
 
 
 ## 一、实验目标
 1. 通过编程实现“等距节点有限差分插值”的完整流程：输入节点数据 → 构建差分表 → 计算插值结果。
-2. 使用 **弗雷瑟图（Fraser Diagram）** 将差分表可视化，使差分结构更直观。
+2. 使用 **弗雷瑟图表（Fraser Diagram）** 将差分表可视化，使差分结构更直观。
 3. 在统一框架下实现并对比 6 种经典等距插值方法（牛顿前/后插、高斯前/后向、斯特林插值、贝塞尔插值），并给出稳定性分析。
 4. 提供交互式可解释性：点击不同方法即可在图上高亮对应“取差分系数的路径”。
 
 > **📦 项目交付物说明**
 > 本实验已将完整源代码托管至 GitHub，并发布了可直接运行的 `.exe` 程序。
 > - **GitHub 仓库**：`https://github.com/An0hana/fraser-diagram`
-> - **可执行程序**：可在仓库 `Releases` 页面下载 `FraserDiagram.exe` (无需 Python 环境即可运行)。
+> - **可执行程序**：可在仓库 `Releases` 页面下载 `FraserDiagram.exe`。
 
 ## 二、实验内容
 本实验实现的功能包括：
@@ -28,7 +28,7 @@
    - 构建 `diff_table[i][j]`，其中 `j` 为差分阶数、`i` 为行号；
    - 递推：`diff_table[i][j] = diff_table[i+1][j-1] - diff_table[i][j-1]`；
    - 时间复杂度约为 `O(n^2)`。
-3. **弗雷瑟图绘制**
+3. **弗雷瑟图表绘制**
    - 将差分表按菱形拓扑绘制，每个节点显示对应差分值；
    - 用连线表示差分递推关系；
    - 自动标出本次插值的“基准节点” `BASE k`。
@@ -47,7 +47,7 @@
      - Bessel：出现“分叉/均值”式连接
 7. **插值曲线绘制与对比**
    - 在独立窗口中绘制插值多项式 $P(x)$ 的连续曲线（基于 200 个采样点）；
-   - 支持输入真实函数表达式 $f(x)$（如 `np.sin(x)`），并在同一坐标系下对比 $P(x)$ 与 $f(x)$ 的差异；
+   - 支持输入真实函数表达式 $f(x)$（如 `np.sin(x)`），在同一坐标系对比 $P(x)$ 与 $f(x)$ 的差异；
    - 动态更新：点击 Ledger 不同方法时，曲线颜色与形态随之更新。
 
 ## 三、实现过程
@@ -62,20 +62,20 @@
    4) 调用 `plotter.plot_diagram()` 绘制 Fraser 图，并标注 `BASE k`；  
    5) 调用 `calculate_all()` 得到 6 方法结果；写入 Ledger；计算 AVERAGE；  
    6) 在 Log 输出：步长 `h`、基准节点 `x0`、位置参数 `p`、稳定性判据与交互提示；  
-4. 用户点击 Ledger 某一行触发 `on_tree_select()`，调用 `plotter.highlight_path()` 高亮对应路径。
+4. 点击 Ledger 某一行触发 `on_tree_select()`，调用 `plotter.highlight_path()` 高亮对应路径。
 
 ### 3.2 等距检查与关键参数
-- 等距检查：令 `diff = np.diff(X)`，若 `not np.allclose(diff, diff[0])` 则报错 `Not Equal Dist`。  
+- 等距检查：令 `diff = np.diff(X)`，若 `not np.allclose(diff, diff[0])` 则报错。  
 - 步长：`h = diff[0]`  
-- 基准节点选择（你的实现）：  
-  - **自动模式（默认）**：`base_k = argmin |X - target_x|`（选择离目标点最近的节点，保证 $|p| \le 0.5$ 以获得最优精度）。
-  - **手动模式（Force Base）**：若用户指定了 Index，则强制使用该节点作为基准（用于验证特定算法行为或复现教科书案例）。
+- 基准节点选择：  
+  - **自动模式（默认）**：`base_k = argmin |X - target_x|`（选择离目标点最近的节点）。
+  - **手动模式（Force Base）**：若用户指定了 Index，则强制使用该节点作为基准（用于教学演示）。
 - 位置参数：  
   `p = (target_x - X[base_k]) / h`  
   并在 Log 中输出位置描述 Center/Left/Right。
 
-### 3.3 差分表递推（核心共享模块）
-差分表是所有插值方法的基础。程序使用二维数组 `diff_table` 存储，通过双重循环实现 $O(n^2)$ 的递推计算。
+### 3.3 差分表递推
+差分表是所有插值方法的基础。程序使用二维数组 `diff_table` 存储，通过双重循环实现 $O(n^2)$ 递推计算。
 
 ```python
 # 构建差分表
@@ -95,7 +95,7 @@ def _build_diff_table(self):
 差分表将 6 种插值方法优美地统一在同一框架之内，不同方法仅在于选取差分系数的路径不同。
 
 ### 3.4 Fraser 图坐标映射
-绘制时采用如下映射（与你 plotter 一致）：
+绘制时采用如下映射：
 - 列坐标：`x = j`
 - 行坐标：`y = -(i + j/2)`
 这样每一阶差分相对前一阶会在纵向“错半格”，视觉上形成菱形层级结构。
@@ -105,10 +105,10 @@ def _build_diff_table(self):
 - Newton B：每前进一阶，row 向上移动（row=k-j）
 - Gauss F / Gauss B：按奇偶阶交错移动 row
 - Stirling：叠加 Gauss F 与 Gauss B 两条路径
-- Bessel：奇数阶显示“从两点合成一点”的分叉连线；偶数阶显示由中间点向上下两点扩散（反映均值结构）
+- Bessel：奇数阶显示“从两点合成一点”的分叉连线；偶数阶显示由中间点向上下两点扩散
 
 ### 3.6 核心插值算法实现
-程序通过 `calculate_all` 方法一次性计算所有结果。以下分模块展示六种方法的实现逻辑，清晰体现了它们在系数选取上的差异。
+通过 `calculate_all` 方法一次性计算所有结果。以下分模块展示六种方法的实现逻辑以及系数选取差异。
 
 **1. 牛顿前插 (Newton Forward)**
 路径特征：从基准点 $(k,0)$ 水平向右，利用下方数据。
@@ -189,7 +189,7 @@ results['Bessel'] = val_bessel
 为了全面验证程序功能及算法特性，本实验设计了三组测试用例，分别用于展示常规流程、验证边界效应以及验证理论等价性。
 
 ### 4.1 案例 A：标准测试（正弦函数拟合）
-> 说明：本案例用于生成第五章的主要截图。
+> 说明：该案例用于生成第五章的截图展示。
 - **X NODES**：`0, 1, 2, 3, 4, 5`
 - **Y VALUES**：`0.0000, 0.8415, 0.9093, 0.1411, -0.7568, -0.9589` (取自 $y=\sin(x)$)
 - **TARGET X**：`2.5`
@@ -211,89 +211,82 @@ results['Bessel'] = val_bessel
 
 ### 5.1 界面总览（基于案例 A）
 <div align="center">
-  <img src="figures/mainmenu.png" width="70%" />
+  <img src="figures/mainmenu.png" width="80%" />
   <br>
   <small>图1 程序主界面总览</small>
 </div>
 
 #### 5.1.1 输入区域细节
 <div align="center">
-  <img src="figures/input.png" width="60%" />
+  <img src="figures/input.png" width="80%" />
   <br>
-  <small>图1-1 数据输入区域</small>
+  <small>图2 数据输入区域细节</small>
 </div>
 
 #### 5.1.2 曲线分析区域
 <div align="center">
-  <img src="figures/curve.png" width="60%" />
+  <img src="figures/curve.png" width="80%" />
   <br>
-  <small>图1-2 曲线拟合与对比分析</small>
+  <small>图3 曲线拟合与对比分析</small>
 </div>
 
-### 5.2 Fraser Diagram（菱形图）
+### 5.2 弗雷瑟图表（Fraser Diagram）
 <div align="center">
-  <img src="figures/fraser-diagram.png" width="70%" />
+  <img src="figures/fraser-diagram.png" width="80%" />
   <br>
-  <small>图2 Fraser Diagram</small>
+  <small>图4 Fraser Diagram</small>
 </div>
 
 ### 5.3 路径高亮示例
 
 <div align="center">
-  <img src="figures/path-NF.png" width="45%" />
-  <img src="figures/path-NB.png" width="45%" />
+  <img src="figures/NF.png" width="49%" />
+  <img src="figures/NB.png" width="49%" />
   <br>
-  <small>Newton F (左) 与 Newton B (右)</small>
+  <small>图5 Newton F (左) 与 Newton B (右)</small>
 </div>
-<br>
 
 <div align="center">
-  <img src="figures/path-GF.png" width="45%" />
-  <img src="figures/path-GB.png" width="45%" />
+  <img src="figures/GF.png" width="49%" />
+  <img src="figures/GB.png" width="49%" />
   <br>
-  <small>Gauss F (左) 与 Gauss B (右)</small>
+  <small>图6 Gauss F (左) 与 Gauss B (右)</small>
 </div>
-<br>
 
 <div align="center">
-  <img src="figures/path-ST.png" width="45%" />
-  <img src="figures/path-BS.png" width="45%" />
+  <img src="figures/ST.png" width="49%" />
+  <img src="figures/BS.png" width="49%" />
   <br>
-  <small>Stirling (左) 与 Bessel (右)</small>
+  <small>图7 Stirling (左) 与 Bessel (右)</small>
 </div>
 
 ### 5.4 结果详情（Ledger 与 Log）
 
 <div align="center">
-  <img src="figures/ledger.png" width="70%" />
+  <img src="figures/ledger.png" width="49%" />
+  <img src="figures/log.png" width="49%" />
   <br>
-  <small>Ledger 计算结果</small>
-  <br><br>
-  <img src="figures/log.png" width="70%" />
-  <br>
-  <small>Log 参数日志</small>
+  <small>图8 Ledger 计算结果 (左) 与Log 参数日志 (右) </small>
 </div>
 
-将 Ledger 的关键结果抄录如下（从界面复制/手填）：
+将 Ledger 的关键结果抄录如下：
 
 | 方法 | Newton F | Newton B | Gauss F | Gauss B | Stirling | Bessel | **AVERAGE** |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **结果** | 0.59xx | 0.59xx | 0.59xx | 0.59xx | 0.59xx | 0.59xx | **0.59xx** |
-
-> 注：由于更换了测试用例为 $\sin(x)$，请以实际运行截图中的数值为准（真值 $\sin(2.5) \approx 0.598$）。
+| **结果** | 0.593006 | 0.653062 | 0.595960 | 0.603570 | 0.599765 | 0.595960 | **0.606887** |
 
 ### 5.5 补充测试案例结果（案例 B & C）
 针对第四章定义的补充案例，运行结果汇总如下：
 
 **案例 B 结果：边界点插值（验证差异性）**
-- **现象**：Newton Forward 正常计算；Stirling/Bessel 因缺乏左侧数据，有效阶数降低，结果与 Newton 法出现显著差异。
+- **现象**：Newton Forward 正常计算；Stirling/Bessel有效阶数降低，结果与 Newton 法出现显著差异。
 - **结果极差 (Range)**：`> 0.1` (Unstable/Divergent)，验证了边界效应对中心差分法的影响。
 
 <div align="center">
-  <img src="figures/curve-caseB-NF.png" width="45%" />
-  <img src="figures/curve-caseB-ST.png" width="45%" />
+  <img src="figures/caseB-NF.png" width="45%" />
+  <img src="figures/caseB-ST.png" width="45%" />
   <br>
-  <small>图5 边界效应对比：Newton F (左，拟合良好) vs Stirling (右，边界发散)</small>
+  <small>图9 边界效应对比：Newton F (左，拟合良好) vs Stirling (右，边界发散)</small>
 </div>
 
 **案例 C 结果：二次多项式验证（验证等价性）**
@@ -302,28 +295,33 @@ results['Bessel'] = val_bessel
 - **结果极差 (Range)**：`0.000000` (High Precision)。
 - **结论**：验证了当函数本身为低阶多项式时，所有插值方法在数学上是完全等价的。
 
+<div align="center">
+  <img src="figures/ID.png" width="70%" />
+  <br>
+  <small>图10 等价性验证</small>
+</div>
+
 ## 六、实验分析
 
 ### 6.1 正确性分析
 - 真值：`y_true = np.sin(2.5) ≈ 0.59847`
 - 绝对误差（以 AVERAGE 为代表）：  
-  `|y_true - y_avg|` （请根据实际运行结果计算）
+  `|y_true - y_avg| = 0.008417`
 
-- 误差较小，说明差分表构建与系数组合正确；
-。
+- 误差较小，说明差分表构建与系数组合正确。
 
-### 6.2 多方法一致性与稳定性分析（与你程序一致）
+### 6.2 多方法一致性与稳定性分析
 程序使用了极差来衡量一致性：
 - `rng = max(values) - min(values)`
 
-并按阈值给出结论（从 Log 抄写）：
+并按阈值给出结论：
 - Results：Minor Fluctuations
 
 解释：
-- `rng` 较小，说明不同路径选取差分系数后得到的插值结果越一致，体现“同源性”；
+- `rng` 较小，说明不同路径选取差分系数后得到的插值结果越一致，体现“同源性”。
 
 ### 6.3 可解释性：路径差异说明
-结合图3/图4：
+结合图5-图7：
 - Newton F 路径单向、结构简单，体现“围绕基准行”的差分累加；
 - Gauss F 路径交错移动，体现中心差分思想；
 - Stirling 高亮两条路径叠加，反映其“对称平均”特征；
@@ -336,27 +334,25 @@ results['Bessel'] = val_bessel
 - X 非等距：`Not Equal Dist`
 
 ### 6.5 深度探讨：插值方法的等价性与差异性
-本实验中观察到，虽然 6 种方法都基于同一张差分表，但计算结果并不完全相同（如 Ledger 所示）。针对这一现象，结合数值分析理论进行如下探讨：
+本实验中观察到，虽然 6 种方法都基于同一张差分表，但计算结果并不完全相同。针对此现象进行探讨：
 
-#### 1. 理论上的等价性（The Equivalence）
-根据**插值多项式唯一性定理（Uniqueness Theorem）**：对于给定的 $n+1$ 个节点，次数不超过 $n$ 的插值多项式是**唯一**的。
-这意味着，如果我们强制所有方法使用**完全相同的一组节点**（即利用相同的数据范围），无论采用牛顿前插、后插还是斯特林插值，它们在数学上是完全等价的，化简后的多项式形式相同，计算结果也应完全一致（忽略计算机浮点数误差）。
+#### 1. 理论等价性
+根据**插值多项式唯一性定理**：对于给定的 $n+1$ 个节点，次数不超过 $n$ 的插值多项式是**唯一**的。如果我们强制所有方法使用**完全相同的一组节点**（即利用相同的数据范围），无论采用牛顿前插、后插还是斯特林插值，它们在数学上是完全等价的，化简后的多项式形式相同，计算结果也应完全一致（忽略浮点数误差）。
 
 #### 2. 实际计算中的差异性来源
 在实际程序运行中出现结果差异（例如 Newton F 与 Stirling 结果不同），主要源于以下两点：
 
-- **可用阶数（Order）的差异（主要原因）**：
+- **可用阶数的差异**：
   不同插值公式对数据点的“拓扑结构”要求不同。
-  - **Newton Forward/Backward**：只需要单侧数据。在数据边缘（如列表头部或尾部），它们往往能利用更多节点，计算到更高的差分阶数。
-  - **Stirling/Bessel**：属于中心差分法，需要基准点上下对称的数据。如果基准点靠近边界，为了保持对称性，这些方法不得不舍弃部分单侧数据，导致实际参与计算的最高阶数降低。
+  - **Newton Forward/Backward**：只需要单侧数据。在数据边缘能利用更多节点计算到高阶差分。
+  - **Stirling/Bessel**：属于中心差分法，需要基准点上下对称的数据。如果基准点靠近边界，为了保持对称性，不得不舍弃部分单侧数据，导致实际参与计算的最高阶数降低。
   - **结论**：程序中不同方法在当前基准点能利用的**最大有效阶数不同**，导致逼近程度不同。
 
 - **基准点选择策略的影响**：
-  当目标点恰好位于两节点正中间（如 $x=1.5$ 位于 $1$ 和 $2$ 之间）时，基准点 $x_k$ 的选择会决定算法的“视野”。
+  以课本第127页例5.5进行验证，当目标点恰好位于两节点正中间（如 $x=1.5$ 位于 $1$ 和 $2$ 之间）时，基准点 $x_k$ 的选择会决定算法的“视野”。
   - **教科书策略**：为了演示 Newton Backward，通常强制选择右侧节点（$x_k=2$）。此时 $p=-0.5$，Newton Backward 能向左看到所有数据，得到全精度结果。
-  - **验证**：利用程序新增的 **Force Base** 功能，强制指定基准点为右侧节点（Index 3），Newton Backward 的结果将瞬间从低精度跃升至全精度（与教科书一致），这深刻揭示了单侧插值法对基准点位置的高度敏感性。
+  - **验证**：利用程序新增的 **Force Base** 功能，强制指定基准点为右侧节点（Index 3），Newton Backward 的结果将瞬间从低精度跃升至全精度（与课本一致），这深刻揭示了单侧插值法对基准点位置的高度敏感性。
 
-- **截断误差特性的不同**：
 - **截断误差特性的不同**：
   即使阶数相同，不同方法的截断误差余项 $R_n(x)$ 对位置参数 $p$ 的敏感度不同。
   - **Stirling**：在 $p \approx 0$（靠近节点）时误差最小。
@@ -366,12 +362,13 @@ results['Bessel'] = val_bessel
 **综上所述**：当数据充足且位于中心区域时，各方法趋于等价；而在数据边界或非对称区域，各方法因利用的信息量不同而表现出差异。这正是引入多种插值方法并进行对比的意义所在。
 
 ## 七、实验结论
-1. 本实验完成了基于有限差分的等距插值程序，实现了差分表计算与弗雷瑟图表地可视化。
-2. 在统一差分数据结构上实现 6 种经典等距插值方法，并通过 Ledger 实现同点多方法对比与 AVERAGE 汇总。
-3. 通过 `rng = max-min` 的稳定性指标与阈值规则，程序能够自动判断结果一致性，并在 Log 中输出结论。
+1. 本实验完成了基于有限差分的等距插值程序，实现了差分表计算与弗雷瑟图表的可视化。
+2. 在统一差分数据结构上实现 6 种经典等距插值方法，并通过 Ledger 实现同点多方法对比与均值汇总。
+3. 通过 `rng = max-min` 的稳定性指标与阈值规则，能够自动判断结果一致性，并在 Log 中输出结论。
 4. 交互式高亮路径将“插值公式的差异”落到“差分图上的路径差异”，提升了可解释性与教学展示效果。
 
-## 附录：源代码与运行说明
+## 八、参考文献
+[1] 史万明, 吴裕树, 孙新. 数值分析(第三版)[M]. 北京: 北京理工大学出版社, 2010: 127.
+
+## 附录：源代码
 - 代码仓库：`https://github.com/An0hana/fraser-diagram.git`
-- 运行方式：`python main.py`
-- 贡献：仓库目前正在扩充，未来计划推出拟合及误差对比的可视化模块

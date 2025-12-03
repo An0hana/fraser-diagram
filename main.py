@@ -15,7 +15,7 @@ try:
 except:
     pass
 
-# 设置 AppUserModelID 以便在任务栏显示图标
+# 任务栏显示图标
 try:
     myappid = 'anohana.fraser_diagram.app.2.0' 
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
