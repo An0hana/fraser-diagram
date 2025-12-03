@@ -263,8 +263,8 @@ results['Bessel'] = val_bessel
 ### 5.4 结果详情（Ledger 与 Log）
 
 <div align="center">
-  <img src="figures/ledger.png" width="49%" />
-  <img src="figures/log.png" width="49%" />
+  <img src="figures/ledger.png" width="50%" />
+  <img src="figures/log.png" width="48%" />
   <br>
   <small>图8 Ledger 计算结果 (左) 与Log 参数日志 (右) </small>
 </div>
