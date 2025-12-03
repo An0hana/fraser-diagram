@@ -51,7 +51,5 @@ class Theme:
         
         style.configure("Treeview", background=c["paper"], fieldbackground=c["paper"], foreground=c["text_dark"], font=(f, 10), rowheight=28, borderwidth=2, relief="solid")
         style.configure("Treeview.Heading", background=c["button"], foreground="white", font=base_font, relief="raised")
-        # 取消表头(Heading)的高亮效果：将 active 状态颜色设为与正常状态一致
         style.map("Treeview.Heading", background=[('active', c["button"])])
-        # 恢复行选中的高亮
         style.map("Treeview", background=[('selected', c["accent"])])
